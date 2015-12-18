@@ -1,0 +1,78 @@
+<launch>
+  <master auto="start"/>
+  <param name="/use_sim_time" value="true"/>
+
+  <node pkg="map_server" type="map_server" name="map_server" args="$(find macl)/stage_config/maps/willow-full.pgm 0.1" respawn="false" >
+    <param name="frame_id" value="/map" />
+  </node> 
+  
+  <node pkg="stage_ros" type="stageros" name="stageros" args="$(find macl)/stage_config/worlds/willow-pr2-multi.world" respawn="false">
+    <param name="base_watchdog_timeout" value="0.2"/>
+  </node>
+
+  <!-- BEGIN ROBOT 0 -->
+  <group ns="robot_0">
+    <param name="tf_prefix" value="robot_0" />
+
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
+      <remap from="map" to="/map" />
+      <param name="controller_frequency" value="10.0" />
+      <rosparam file="$(find macl)/move_base_config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find macl)/move_base_config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find macl)/move_base_config/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find macl)/move_base_config/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find macl)/move_base_config/base_local_planner_params.yaml" command="load" />
+    </node>
+    <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false" output="screen">
+      <param name="odom_frame_id" value="robot_0/odom" />
+      <param name="base_frame_id" value="robot_0/base_link" />
+    </node>
+    <node pkg="macl" type="stage_random_walk" name="random_walk" args="0" output="screen"/>
+    <include file="$(find macl)/move_base_config/amcl_node.xml">
+    	<arg name="scan_topic" value="/robot_0/base_scan"/> 
+  		<arg name="odom_frame_id" value="/robot_0/odom"/>
+  		<arg name="base_frame_id" value="/robot_0/base_link"/>
+  		<arg name="global_frame_id" value="/map"/>
+  		<arg name="initial_pose_x" value="28"/>
+  		<arg name="initial_pose_y" value="14.5"/>
+  		<arg name="initial_pose_a" value="0.79"/>
+	  </include>
+	  <node pkg="macl" type="observer" name="observer" args="1" output="screen"/>
+  </group>
+
+  <!-- END ROBOT 0 -->
+
+  <!-- BEGIN ROBOT 1 -->
+  <group ns="robot_1">
+    <param name="tf_prefix" value="robot_1" />
+
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base_node" output="screen">
+      <remap from="map" to="/map" />
+      <param name="controller_frequency" value="10.0" />
+      <rosparam file="$(find macl)/move_base_config/costmap_common_params.yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find macl)/move_base_config/costmap_common_params.yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find macl)/move_base_config/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find macl)/move_base_config/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find macl)/move_base_config/base_local_planner_params.yaml" command="load" />
+    </node>
+    <node pkg="fake_localization" type="fake_localization" name="fake_localization" respawn="false">
+      <param name="odom_frame_id" value="robot_1/odom" />
+      <param name="base_frame_id" value="robot_1/base_link" />
+    </node>
+    <node pkg="macl" type="stage_random_walk" name="random_walk" args="1" output="screen"/>
+    <include file="$(find macl)/move_base_config/amcl_node.xml">
+    	<arg name="scan_topic" value="/robot_1/base_scan"/> 
+  		<arg name="odom_frame_id" value="/robot_1/odom"/>
+  		<arg name="base_frame_id" value="/robot_1/base_link"/>
+  		<arg name="global_frame_id" value="/map"/>
+   		<arg name="initial_pose_x" value="43"/>
+  		<arg name="initial_pose_y" value="21"/>
+  		<arg name="initial_pose_a" value="0.79"/>
+	  </include>
+	  <node pkg="macl" type="fuse" name="fuse" args="1" output="screen"/>
+  </group>
+  <!-- END ROBOT 1 -->
+
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find macl)/multi_robot.rviz" />
+
+</launch>
