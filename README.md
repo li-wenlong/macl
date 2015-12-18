@@ -9,3 +9,5 @@ Robot 1 receives the message from robot 0 and combines it with its own
 belief. By fusing two position estimates, robot 1 gets better estimate of its
 position.
 
+More introduction is: http://www-users.cselabs.umn.edu/~moxxx066/MACL_2015.pdf
+
